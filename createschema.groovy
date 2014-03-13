@@ -8,6 +8,7 @@ import org.apache.commons.io.LineIterator
 import org.apache.commons.dbutils.QueryRunner
 import org.apache.commons.dbutils.DbUtils
 import org.apache.commons.dbutils.ResultSetHandler
+import org.apache.commons.dbutils.handlers.ArrayListHandler
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
@@ -276,6 +277,8 @@ Connection conn = DriverManager.getConnection(connectionUrl);
 
 //PART 1 - InitializeWorkbenchDatabaseAction.runWorkbenchScripts
 
+println "\n** Creating workbench schema **"
+
 QueryRunner queryRunner = new QueryRunner()
 
 queryRunner.update(conn, "CREATE DATABASE IF NOT EXISTS workbench");
@@ -313,6 +316,8 @@ queryRunner.update(conn, "INSERT INTO workbench.workbench_setting(installation_d
 
 //PART 2 - InitializeWorkbenchDatabaseAction.registerCrops
 
+println "\n** Registering central crop schema names **"
+
 enum Crop {
      BEAN(      "bean",         "ibdbv2_bean_central",          "ibdbv2_bean_central_light",        "ibdbv2_bean_local"),
      CASSAVA(   "cassava",      "ibdbv2_cassava_central",       "ibdbv2_cassava_central_light",     "ibdbv2_cassava_local"),
@@ -343,34 +348,23 @@ enum Crop {
 
 queryRunner.update(conn, "SET FOREIGN_KEY_CHECKS=0")
 
-ResultSetHandler<Object[]> rsHandler = new ResultSetHandler<Object[]>() {
-    public Object[] handle(ResultSet rs) throws SQLException {
-        if (!rs.next()) {
-            return null;
+ResultSetHandler<List<Object[]>> rsHandler = new ResultSetHandler<List<Object[]>>() {
+    public List<Object[]> handle(ResultSet rs) throws SQLException {        
+        
+        List<Object[]> results = new ArrayList<Object[]>();
+        while(rs.next()) {
+            Object [] row = new ArrayListHandler().handleRow(rs)
+            results.add(row)
         }
-    
-        ResultSetMetaData meta = rs.getMetaData();
-        int cols = meta.getColumnCount();
-        Object[] result = new Object[cols];
-
-        for (int i = 0; i < cols; i++) {
-            result[i] = rs.getObject(i + 1);
-        }
-
-        return result;
+        return results
     }
-};
-
+}
 
 for(Crop c : Crop.values()) {
-	
-    Object[] result = queryRunner.query(conn, " SELECT count(*) AS count FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ? ", rsHandler, c.centralDatabaseName)
-
-    if(result[0] == 1) {
-		println "$c.centralDatabaseName exists! Registering in workbench_crop."		
-        queryRunner.update(conn, "REPLACE INTO workbench.workbench_crop (crop_name, central_db_name) VALUES (?, ?)", c.cropName, c.centralDatabaseName);
-
-	}
+    //def dbChekResult = queryRunner.query(conn, " SELECT count(*) AS count FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ? ", rsHandler, c.centralDatabaseName)
+    //if(dbChekResult [0][0] == 1)
+    // For dev environment, register all the common crops
+    queryRunner.update(conn, "INSERT INTO workbench.workbench_crop (crop_name, central_db_name) VALUES (?, ?)", c.cropName, c.centralDatabaseName);
 }
 
 //PART 3 - InitializeWorkbenchDatabaseAction.registerTools
@@ -458,6 +452,8 @@ enum Tool {
 
 }
 
+println "\n** Registering IBP Tools in workbench.workbench_tool  **"
+
 for(Tool t : Tool.values()) {
 
 	def toolPath = t.type == "NATIVE" ? installationDir + File.separator + t.path : t.path
@@ -468,42 +464,66 @@ for(Tool t : Tool.values()) {
 
 queryRunner.update(conn, "SET FOREIGN_KEY_CHECKS=1")
 
+def runScriptsInDir(Connection conn, File scriptDir) {
 
-// PART 4 - Run sqls for central crops from database/central/common-update
+    if(scriptDir.exists()) {  
+      File[] sqlFiles = scriptDir.listFiles(new FilenameFilter() {
+                  public boolean accept(File dir, String name) {
+                      return name.endsWith(".sql");
+                  }
+              });
+
+      for(File f : sqlFiles) {
+          executeScript(conn, f)
+      }
+  }
+}
 
 
-// PART 5 - Create the central schema for one sample crop (Rice)
+// PART 4 - Create the central and local schema for one sample crop
+
+println "\n** Creating the central schema for one sample crop **"
 
 String centralCropDB = config["db.crop.central"]
 
 queryRunner.update(conn, "CREATE DATABASE ${centralCropDB} character set utf8 collate utf8_general_ci")
 queryRunner.update(conn, "USE ${centralCropDB}")
 
-def runScriptsInDir(Connection conn, File scriptDir) {
-
-    assert scriptDir.exists() == true;
-    
-    File[] sqlFiles = scriptDir.listFiles(new FilenameFilter() {
-                public boolean accept(File dir, String name) {
-                    return name.endsWith(".sql");
-                }
-            });
-
-    for(File f : sqlFiles) {
-        executeScript(conn, f)
-    }
-
-}
 runScriptsInDir(conn, new File("database/central/common"))
 
+
+println "\n** Creating the local schema for one sample crop **"
 
 String localCropDB = config["db.crop.local"]
 queryRunner.update(conn, "CREATE DATABASE ${localCropDB} character set utf8 collate utf8_general_ci")
 queryRunner.update(conn, "USE ${localCropDB}")
 runScriptsInDir(conn, new File("database/local/common"))
 
+
+// PART 5 - Install4JUtil.updateCentralDatabases (Run sqls for central crops from database/central/common-update)
+
+println "\n** Applying updates to the central crop schema just created **"
+
+//def result = queryRunner.query(conn, " SELECT central_db_name FROM workbench.workbench_crop ", rsHandler)
+
+def dbChekResult = queryRunner.query(conn, " SELECT count(*) AS count FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ? ", rsHandler, centralCropDB)
+
+if(dbChekResult [0][0] == 1) {
+    queryRunner.update(conn, "USE " + centralCropDB);      
+    runScriptsInDir(conn, new File("database/central/common-update"))
+}
+
+// PART 6 - Install4JUtil.updateLocalDatabases (Run sqls for central crops from database/local/common-update)
+
+println "\n** Applying updates to the local crop schema just created **"
+
+dbChekResult = queryRunner.query(conn, " SELECT count(*) AS count FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ? ", rsHandler, localCropDB)
+
+if(dbChekResult [0][0] == 1) {
+    queryRunner.update(conn, "USE " + localCropDB);      
+    runScriptsInDir(conn, new File("database/local/common-update"))
+}
+
 DbUtils.close(conn);  
 
-println "DONE! SUCCESS!"
-
-
+println "All Done! Success!"
