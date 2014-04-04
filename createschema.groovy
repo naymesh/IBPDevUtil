@@ -261,6 +261,8 @@ public class ScriptRunner {
 
 }
 
+// -------- START SCRIPT HERE -------------------
+
 def config = new Properties()
 new File("config.properties").withInputStream { 
   stream -> config.load(stream) 
@@ -272,14 +274,22 @@ String connectionUrl = String.format("jdbc:mysql://%s:%s/?user=%s&password=%s&us
 
 String installationDir = config["misc.IBPInstallDir"];
 
+println("Read config");
+println("Connection : " + connectionUrl);
+println("Installation Dir : " + installationDir);
+
 Class.forName("com.mysql.jdbc.Driver");
 Connection conn = DriverManager.getConnection(connectionUrl);
 
 //PART 1 - InitializeWorkbenchDatabaseAction.runWorkbenchScripts
 
-println "\n** Creating workbench schema **"
+println("Dropping Workbench DB schema");
 
 QueryRunner queryRunner = new QueryRunner()
+
+queryRunner.update(conn, "DROP SCHEMA workbench");
+
+println "\n** Creating workbench schema **"
 
 queryRunner.update(conn, "CREATE DATABASE IF NOT EXISTS workbench");
 queryRunner.update(conn, "GRANT ALL ON workbench.* TO 'workbench'@'localhost' IDENTIFIED BY 'workbench'")
@@ -482,9 +492,16 @@ def runScriptsInDir(Connection conn, File scriptDir) {
 
 // PART 4 - Create the central and local schema for one sample crop
 
+String centralCropDB = config["db.crop.central"]
+String localCropDB = config["db.crop.local"]
+
+println "\n**** Dropping Crop DBs in order to refreh ***"
+
+queryRunner.update(conn, "DROP SCHEMA ${centralCropDB}")
+queryRunner.update(conn, "DROP SCHEMA ${localCropDB}")
+
 println "\n** Creating the central schema for one sample crop **"
 
-String centralCropDB = config["db.crop.central"]
 
 queryRunner.update(conn, "CREATE DATABASE ${centralCropDB} character set utf8 collate utf8_general_ci")
 queryRunner.update(conn, "USE ${centralCropDB}")
@@ -494,7 +511,6 @@ runScriptsInDir(conn, new File("database/central/common"))
 
 println "\n** Creating the local schema for one sample crop **"
 
-String localCropDB = config["db.crop.local"]
 queryRunner.update(conn, "CREATE DATABASE ${localCropDB} character set utf8 collate utf8_general_ci")
 queryRunner.update(conn, "USE ${localCropDB}")
 runScriptsInDir(conn, new File("database/local/common"))
