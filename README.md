@@ -3,6 +3,9 @@ IBP Development Utilities
 
 Point `config.properties` to your MySQL instance and run `groovy createschema.groovy`.
 
+To see Grapes being downloaded (useful for first time running), add verbose Grape handling to your command
+'groovy -Dgroovy.grape.report.downloads=true createschema.groovy'
+
 The groovy script
 
 * Creates the `workbench` schema
