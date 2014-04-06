@@ -268,6 +268,42 @@ new File("config.properties").withInputStream {
   stream -> config.load(stream) 
 }
 
+def executeScript(Connection connection, File sqlFile) throws IOException {
+    
+    BufferedReader br = null;
+    
+    print "Running script : ${sqlFile.path} ..."
+
+    try {
+        
+        br = new BufferedReader(new InputStreamReader(new FileInputStream(sqlFile)));
+        ScriptRunner scriptRunner = new ScriptRunner(connection, false, true);
+        scriptRunner.runScript(br);
+
+    } finally {
+        if (br != null) {
+             br.close();
+        }
+    }
+
+    println "Done."
+}
+
+def runScriptsInDir(Connection conn, File scriptDir) {
+
+    if(scriptDir.exists()) {  
+      File[] sqlFiles = scriptDir.listFiles(new FilenameFilter() {
+                  public boolean accept(File dir, String name) {
+                      return name.endsWith(".sql");
+                  }
+              });
+
+      for(File f : sqlFiles) {
+          executeScript(conn, f)
+      }
+  }
+}
+
 String connectionUrl = String.format("jdbc:mysql://%s:%s/?user=%s&password=%s&useUnicode=true&characterEncoding=utf8", 
     
                                     config["db.host"], config["db.port"], config["db.user"], config["db.password"])
@@ -295,34 +331,20 @@ queryRunner.update(conn, "CREATE DATABASE IF NOT EXISTS workbench");
 queryRunner.update(conn, "GRANT ALL ON workbench.* TO 'workbench'@'localhost' IDENTIFIED BY 'workbench'")
 queryRunner.update(conn, "USE workbench")
 
-def executeScript(Connection connection, File sqlFile) throws IOException {
-    
-    BufferedReader br = null;
-    
-    print "Running script : ${sqlFile.path} ..."
-
-    try {
-        
-        br = new BufferedReader(new InputStreamReader(new FileInputStream(sqlFile)));
-        ScriptRunner scriptRunner = new ScriptRunner(connection, false, true);
-        scriptRunner.runScript(br);
-
-    } finally {
-        if (br != null) {
-             br.close();
-        }
-    }
-
-    println "Done."
-}
-
 queryRunner.update(conn, "USE workbench");
 
-executeScript(conn, new File("database/workbench/IBDBv1_Workbench_Project.sql"))
+runScriptsInDir(conn, new File("database/workbench/main"))
 
 //will this table ever have muliple rows?
 queryRunner.update(conn, "INSERT INTO workbench.workbench_setting(installation_directory) VALUES (?)", installationDir) 
 
+//run updates to the workbench schema
+
+runScriptsInDir(conn, new File("database/workbench/updates/20130519"))
+runScriptsInDir(conn, new File("database/workbench/updates/20140103"))
+runScriptsInDir(conn, new File("database/workbench/updates/20140116"))
+runScriptsInDir(conn, new File("database/workbench/updates/20140123"))
+runScriptsInDir(conn, new File("database/workbench/updates/20140303"))
 
 //PART 2 - InitializeWorkbenchDatabaseAction.registerCrops
 
@@ -473,21 +495,6 @@ for(Tool t : Tool.values()) {
 }
 
 queryRunner.update(conn, "SET FOREIGN_KEY_CHECKS=1")
-
-def runScriptsInDir(Connection conn, File scriptDir) {
-
-    if(scriptDir.exists()) {  
-      File[] sqlFiles = scriptDir.listFiles(new FilenameFilter() {
-                  public boolean accept(File dir, String name) {
-                      return name.endsWith(".sql");
-                  }
-              });
-
-      for(File f : sqlFiles) {
-          executeScript(conn, f)
-      }
-  }
-}
 
 
 // PART 4 - Create the central and local schema for one sample crop
