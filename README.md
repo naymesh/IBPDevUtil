@@ -36,9 +36,9 @@ Follow these directions to load
 
 1. Either : 
     * scp from our Linux server
-    * download crop installer exe, and add the files in 'post-crop-load' directory to the 
+    * download crop installer exe, extract (anywhere else, not into this IBPDevUtil source tree), and configure the loadRice.sh script to refer to this directory as the source for the crop files
 2. cd database/crop/rice
-3. Set path config in loadRice.sh. We copy files in and out of this directory so we do not accidentally commit to Git
+3. If not done previously, set path config in loadRice.sh. We copy files in and out of this directory so we do not accidentally commit to Git
 4. ./loadRice.sql
 
 Let me know how the script progress feedback goes .....
