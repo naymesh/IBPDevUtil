@@ -50,6 +50,7 @@ Let me know how the script progress feedback goes .....
 * build each project 'mvn clean antrun:run install -DenvConfig=rebecca [your_chosen_env_here]'
 
 Projects :
+```
  git clone https://github.com/digitalabs/IBPCOmmons
  git clone https://github.com/digitalabs/IBPMiddleware
  git clone https://github.com/digitalabs/GermplasmStudyBrowser
@@ -57,6 +58,7 @@ Projects :
  git clone https://github.com/digitalabs/DatasetImporter
  git clone https://github.com/digitalabs/Fieldbook
  git clone https://github.com/digitalabs/IBPWorkbench'
+ ```
 
 
 ### Deploy Wars to Tomcat ###
