@@ -262,6 +262,8 @@ public class ScriptRunner {
 }
 
 // -------- START SCRIPT HERE -------------------
+//-----------------------------------------------
+//-----------------------------------------------
 
 def config = new Properties()
 new File("config.properties").withInputStream { 
@@ -323,7 +325,7 @@ println("Dropping Workbench DB schema");
 
 QueryRunner queryRunner = new QueryRunner()
 
-queryRunner.update(conn, "DROP SCHEMA workbench");
+queryRunner.update(conn, "DROP SCHEMA IF EXISTS workbench");
 
 println "\n** Creating workbench schema **"
 
@@ -504,8 +506,8 @@ String localCropDB = config["db.crop.local"]
 
 println "\n**** Dropping Crop DBs in order to refreh ***"
 
-queryRunner.update(conn, "DROP SCHEMA ${centralCropDB}")
-queryRunner.update(conn, "DROP SCHEMA ${localCropDB}")
+queryRunner.update(conn, "DROP SCHEMA IF EXISTS ${centralCropDB}")
+queryRunner.update(conn, "DROP SCHEMA IF EXISTS ${localCropDB}")
 
 println "\n** Creating the central schema for one sample crop **"
 
