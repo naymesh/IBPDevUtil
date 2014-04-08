@@ -3,6 +3,10 @@ IBP Development Utilities
 
 Here's how you create a working BMS environment on your local Linux/Mac machine from scratch
 
+### First Time Only - set Tomcat to deal with Spring Configurable beans (Load TIme Weaving) ###
+
+Copy the tomcat_settings/setenv.sh file into your TOMCAT_HOME/bin directory (there will not be one there when you install Tomcat, if there is then add to it). Tomcat will pick this file up (check in catalina.sh if you like) when it starts.
+
 ### Create DB Schemas (workbench, crop central) ###
 
 The following configuration must be declared 
