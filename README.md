@@ -36,9 +36,9 @@ Follow these directions to load
 
 1. Either : 
     * scp from our Linux server
-    * download crop installer exe, extract (anywhere else, not into this IBPDevUtil source tree), and configure the loadRice.sh script to refer to this directory as the source for the crop files
+    * download crop installer exe, extract (anywhere else, not into this IBPDevUtil source tree), and configure the database/crop/rice/loadRice.sh script to refer to this directory as the source for the crop files
 2. cd database/crop/rice
-3. If not done previously, set path config in loadRice.sh. We copy files in and out of this directory so we do not accidentally commit to Git
+3. If not done previously, set path config in loadRice.sh. NOTE : we copy files into this directory and then *remove them* so we do not accidentally commit to Git
 4. ./loadRice.sql
 
 Let me know how the script progress feedback goes .....
@@ -46,17 +46,17 @@ Let me know how the script progress feedback goes .....
 ### Build Code ###
 
 * checkout all BMS working projects from Git
-* configure as necessary in pipeline/config/[yourname]
+* configure as necessary in pipeline/config/[yourname] (or use an existing dir)
 * build each project 'mvn clean antrun:run install -DenvConfig=rebecca [your_chosen_env_here]'
 
 Projects :
-git clone https://github.com/digitalabs/IBPCOmmons
-git clone https://github.com/digitalabs/IBPMiddleware
-git clone https://github.com/digitalabs/GermplasmStudyBrowser
-git clone https://github.com/digitalabs/BreedingManager
-git clone https://github.com/digitalabs/DatasetImporter
-git clone https://github.com/digitalabs/Fieldbook
-git clone https://github.com/digitalabs/IBPWorkbench
+ git clone https://github.com/digitalabs/IBPCOmmons
+ git clone https://github.com/digitalabs/IBPMiddleware
+ git clone https://github.com/digitalabs/GermplasmStudyBrowser
+ git clone https://github.com/digitalabs/BreedingManager
+ git clone https://github.com/digitalabs/DatasetImporter
+ git clone https://github.com/digitalabs/Fieldbook
+ git clone https://github.com/digitalabs/IBPWorkbench'
 
 
 ### Deploy Wars to Tomcat ###
