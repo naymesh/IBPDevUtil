@@ -45,6 +45,16 @@ Let me know how the script progress feedback goes .....
 * configure as necessary in pipeline/config/[yourname]
 * build each project 'mvn clean antrun:run install -DenvConfig=rebecca [your_chosen_env_here]'
 
+Projects :
+git clone https://github.com/digitalabs/IBPCOmmons
+git clone https://github.com/digitalabs/IBPMiddleware
+git clone https://github.com/digitalabs/GermplasmStudyBrowser
+git clone https://github.com/digitalabs/BreedingManager
+git clone https://github.com/digitalabs/DatasetImporter
+git clone https://github.com/digitalabs/Fieldbook
+git clone https://github.com/digitalabs/IBPWorkbench
+
+
 ### Deploy Wars to Tomcat ###
 
 1. cd deploy_scripts
