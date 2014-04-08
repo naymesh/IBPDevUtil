@@ -51,7 +51,7 @@ Let me know how the script progress feedback goes .....
 
 Projects :
 ```
- git clone https://github.com/digitalabs/IBPCOmmons
+ git clone https://github.com/digitalabs/IBPCommons
  git clone https://github.com/digitalabs/IBPMiddleware
  git clone https://github.com/digitalabs/GermplasmStudyBrowser
  git clone https://github.com/digitalabs/BreedingManager
