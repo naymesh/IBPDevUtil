@@ -1,0 +1,2 @@
+CATALINA_OPTS="$CATALINA_OPTS -javaagent:/Users/rebecca/spring-instrument-3.1.1.RELEASE.jar"
+JAVA_OPTS="$JAVA_OPTS -server -Xms756m -Xmx1592m -XX:PermSize=256m -XX:MaxPermSize=1024m -XX:+CMSClassUnloadingEnabled"
