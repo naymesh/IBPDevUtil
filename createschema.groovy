@@ -300,6 +300,9 @@ def runScriptsInDir(Connection conn, File scriptDir) {
                   }
               });
 
+      // We need to implicitly sort by name, because on Linux alphanumeric name sort is seemingly not the default
+      sortedFiles = sqlFiles.listFiels().sort{ file -> file.getName() }
+
       for(File f : sqlFiles) {
           executeScript(conn, f)
       }
