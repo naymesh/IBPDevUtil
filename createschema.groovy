@@ -293,16 +293,14 @@ def executeScript(Connection connection, File sqlFile) throws IOException {
 
 def runScriptsInDir(Connection conn, File scriptDir) {
 
+    // We need to implicitly sort by name, because on Linux alphanumeric name sort is seemingly not the default
     if(scriptDir.exists()) {  
       File[] sqlFiles = scriptDir.listFiles(new FilenameFilter() {
                   public boolean accept(File dir, String name) {
                       return name.endsWith(".sql");
                   }
-              });
-
-      // We need to implicitly sort by name, because on Linux alphanumeric name sort is seemingly not the default
-      sortedFiles = sqlFiles.listFiles().sort{ file -> file.getName() }
-
+              }).sort{ file -> file.getName() };
+ 
       for(File f : sqlFiles) {
           executeScript(conn, f)
       }
