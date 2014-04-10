@@ -493,6 +493,8 @@ for(Tool t : Tool.values()) {
 
 	def toolPath = t.type == "NATIVE" ? installationDir + File.separator + t.path : t.path
 
+  toolPath = toolPath.replaceAll("localhost", config['server.host']);
+
 	queryRunner.update(conn, "REPLACE INTO workbench.workbench_tool (tool_id, name, group_name, title, version, tool_type, path, parameter, user_tool) VALUES (?,?,?,?,?,?,?,?,?)", 
 		t.toolId, t.toolName, t.groupName, t.title, t.version, t.type, toolPath, t.parameter, t.userTool)
 }
